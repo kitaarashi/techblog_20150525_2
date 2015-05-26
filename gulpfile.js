@@ -1,39 +1,28 @@
 'use strict'
 var componnentName = 'Lightning_panelCustomerJS';
 var outputVarName = 'reactjs'
-var srcFiles= './src/*.js';
+//var srcFiles= './src/*.js';
+var srcFile = './src/main.js';
 var resourceFolder = './pkg/staticresources';
 
 var gulp = require('gulp'),
     $ = require('gulp-load-plugins')(),
     browserify = require('browserify'),
     transform = require('vinyl-transform'),　 //最新のgulpと組み合わせるとうまくいかない
-    source = require('vinyl-source-stream'),  //through2 と組み合わせるとうまくいかない
+    source = require('vinyl-source-stream'),
     buffer = require('vinyl-buffer'),
     reactify = require('reactify'),
-    through2 = require('through2'),
     jsforce = require('jsforce');
 
 //build js file with compress mode
 gulp.task('build', function(){
-  gulp.src(srcFiles)
-  .pipe(through2.obj(function (file, enc, next){
-    return browserify({
-//      debug : true,
-      entries : file.path,
-      transform: [reactify],
-      standalone: outputVarName
-    }).bundle(function(err, res){
-      if(typeof err !== 'undefined' && err !== null){
-        console.log(err);
-      }
-      file.contents = res;
-      next(null, file);
-    });
-
-  }))
-  .pipe($.rename(componnentName + '.resource'))
-//  .pipe(source(componnentName + '.resource'))
+  return browserify({
+    entries : srcFile,
+    transform : [reactify],
+    standalone: outputVarName
+  })
+  .bundle()
+  .pipe(source(componnentName + '.resource'))
   .pipe(buffer())
   .pipe($.uglify())
   .pipe(gulp.dest(resourceFolder));
@@ -41,22 +30,13 @@ gulp.task('build', function(){
 
 //build js file without compressed
 gulp.task('build-full', function(){
-  gulp.src(srcFiles)
-  .pipe(through2.obj(function (file, enc, next){
-    return browserify({
-      entries : file.path,
-      transform: [reactify],
-      standalone: outputVarName
-    }).bundle(function(err, res){
-      if(typeof err !== 'undefined' && err !== null){
-        console.log(err);
-      }
-      file.contents = res;
-      next(null, file);
-    });
-
-  }))
-  .pipe($.rename(componnentName + '.resource'))
+  return browserify({
+    entries : srcFile,
+    transform : [reactify],
+    standalone: outputVarName
+  })
+  .bundle()
+  .pipe(source(componnentName + '.resource'))
   .pipe(gulp.dest(resourceFolder));
 });
 
@@ -97,4 +77,3 @@ gulp.task('watch', function(){
   gulp.watch("./src/**/*", ["build"]);
   gulp.watch("./pkg/**/*", ["deploy"]);
 });
-
